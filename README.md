@@ -76,10 +76,18 @@ Start the service with:
 docker compose up
 ```
 
+## CI/CD
+A GitHub Actions workflow automatically builds and pushes the Docker image to Docker Hub on every push to `main`. Images are tagged with both the commit SHA and `latest`.
+
+To set this up, add the following **repository secrets** in your GitHub repo under **Settings > Secrets and variables > Actions**:
+- `DOCKERHUB_USERNAME` — your Docker Hub username
+- `DOCKERHUB_TOKEN` — a Docker Hub access token
+
 ## Development
 - `app.py`: Main Flask application
 - `requirements.txt`: Python dependencies
 - `Dockerfile`: Container build instructions
+- `.github/workflows/docker-build-push.yml`: CI/CD pipeline
 
 ## License
 MIT
