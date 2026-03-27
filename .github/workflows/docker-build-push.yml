@@ -2,8 +2,8 @@ name: Build and Push Docker Image
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - main
 
 jobs:
   build-and-push:
@@ -19,13 +19,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract tag name
-        id: tag
-        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: oldrooster/stalemate:${{ steps.tag.outputs.TAG }}
+          tags: |
+            oldrooster/stalemate:${{ github.sha }}
+            oldrooster/stalemate:latest
