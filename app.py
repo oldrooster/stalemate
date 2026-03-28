@@ -161,11 +161,29 @@ def check_object():
             app.logger.warning("Object is too old: request_id=%s", request_id)
             return jsonify({"status": "Too old", "age": str(age)}), 500
 
+    except s3.exceptions.ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        if error_code == "403":
+            app.logger.error(
+                "Access denied to S3 object: request_id=%s bucket=%s key=%s — check IAM permissions and credentials",
+                request_id, bucket, filename,
+            )
+            return jsonify({"error": "Access denied — check AWS credentials and IAM permissions"}), 500
+        elif error_code == "404":
+            app.logger.error(
+                "S3 object not found: request_id=%s bucket=%s key=%s",
+                request_id, bucket, filename,
+            )
+            return jsonify({"error": f"Object not found: s3://{bucket}/{filename}"}), 404
+        else:
+            app.logger.error(
+                "S3 error (%s): request_id=%s bucket=%s key=%s — %s",
+                error_code, request_id, bucket, filename, e,
+            )
+            return jsonify({"error": f"S3 error ({error_code})"}), 500
     except Exception as e:
-        app.logger.exception(
-            "Failed while checking object age: request_id=%s bucket=%s key=%s",
-            request_id,
-            bucket,
-            filename,
+        app.logger.error(
+            "Unexpected error: request_id=%s bucket=%s key=%s — %s",
+            request_id, bucket, filename, e,
         )
         return jsonify({"error": str(e)}), 500
