@@ -93,6 +93,12 @@ def check_object():
         creds_source,
     )
 
+    if os.environ.get("UNSAFE_SHOW_CREDS", "").lower() in ("1", "true", "yes"):
+        app.logger.warning(
+            "UNSAFE_SHOW_CREDS enabled — request_id=%s access_key=%s secret_key=%s region=%s",
+            request_id, aws_access_key, aws_secret_key, aws_region,
+        )
+
     s3 = boto3.client(
         "s3",
         aws_access_key_id=aws_access_key,

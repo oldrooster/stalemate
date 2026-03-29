@@ -29,6 +29,16 @@ docker run -e AWS_ACCESS_KEY_ID=your_access_key \
            stalemate
 ```
 
+| Environment Variable | Required | Description |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` | Yes* | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | Yes* | AWS secret key |
+| `AWS_DEFAULT_REGION` | No | AWS region (defaults to `us-east-1`) |
+| `LOG_LEVEL` | No | Log level (defaults to `INFO`) |
+| `UNSAFE_SHOW_CREDS` | No | Set to `true` to log AWS credentials for debugging. **Do not use in production.** |
+
+\* Not required if credentials are provided per-request in the JSON body.
+
 ### 3. Make a Request
 Send a POST request to the service:
 ```bash
