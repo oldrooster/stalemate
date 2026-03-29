@@ -58,34 +58,6 @@ def log_request_end(response):
 def check_object():
     request_id = getattr(g, "request_id", "unknown")
 
-    # Set AWS credentials from environment variables
-    aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
-    aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
-
-    if not aws_access_key or not aws_secret_key:
-        app.logger.error(
-            "Missing AWS credentials in environment variables: request_id=%s region=%s",
-            request_id,
-            aws_region,
-        )
-        return jsonify({"error": "Missing AWS credentials in environment variables"}), 500
-
-    app.logger.info(
-        "AWS configuration loaded: request_id=%s region=%s access_key_present=%s secret_key_present=%s",
-        request_id,
-        aws_region,
-        bool(aws_access_key),
-        bool(aws_secret_key),
-    )
-
-    s3 = boto3.client(
-        "s3",
-        aws_access_key_id=aws_access_key,
-        aws_secret_access_key=aws_secret_key,
-        region_name=aws_region
-    )
-
     try:
         body = request.get_json(force=True, silent=True)
         if not body:
@@ -99,6 +71,33 @@ def check_object():
         "Parsed request JSON: request_id=%s keys=%s",
         request_id,
         sorted(list(body.keys())),
+    )
+
+    # AWS credentials: use request body if provided, fall back to environment variables
+    aws_access_key = body.get("aws_access_key_id") or os.environ.get("AWS_ACCESS_KEY_ID")
+    aws_secret_key = body.get("aws_secret_access_key") or os.environ.get("AWS_SECRET_ACCESS_KEY")
+    aws_region = body.get("aws_region") or os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+    creds_source = "request" if body.get("aws_access_key_id") else "environment"
+
+    if not aws_access_key or not aws_secret_key:
+        app.logger.error(
+            "Missing AWS credentials: request_id=%s — provide in request body or environment variables",
+            request_id,
+        )
+        return jsonify({"error": "Missing AWS credentials — provide in request body or environment variables"}), 400
+
+    app.logger.info(
+        "AWS configuration loaded: request_id=%s region=%s credentials_source=%s",
+        request_id,
+        aws_region,
+        creds_source,
+    )
+
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=aws_access_key,
+        aws_secret_access_key=aws_secret_key,
+        region_name=aws_region
     )
 
     bucket = body.get("bucket")

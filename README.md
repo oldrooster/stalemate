@@ -37,9 +37,25 @@ curl -X POST http://localhost:5000/ \
      -d '{"bucket": "your-bucket", "filename": "your-object-key", "max_age_hours": 24}'
 ```
 
-- **bucket**: Name of the S3 bucket
-- **filename**: Key of the S3 object
-- **max_age_hours**: Maximum allowed age in hours
+#### Request Parameters
+
+| Parameter | Required | Description |
+|---|---|---|
+| `bucket` | Yes | Name of the S3 bucket |
+| `filename` | Yes | Key of the S3 object |
+| `max_age_hours` | Yes | Maximum allowed age in hours |
+| `aws_access_key_id` | No | AWS access key (overrides environment variable) |
+| `aws_secret_access_key` | No | AWS secret key (overrides environment variable) |
+| `aws_region` | No | AWS region (overrides environment variable) |
+
+AWS credentials can be provided either as environment variables (see step 2) or per-request in the JSON body. Request body values take priority over environment variables.
+
+Example with per-request credentials:
+```bash
+curl -X POST http://localhost:5000/ \
+     -H 'Content-Type: application/json' \
+     -d '{"bucket": "your-bucket", "filename": "your-object-key", "max_age_hours": 24, "aws_access_key_id": "AKIA...", "aws_secret_access_key": "secret", "aws_region": "ap-southeast-2"}'
+```
 
 #### Example Response
 - If the object is young enough:
